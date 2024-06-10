@@ -277,6 +277,12 @@ cd intel-extension-for-pytorch
 python -m pip install -r requirements.txt
 export LLVM_DIR=${LLVM_ROOT}/lib/cmake/llvm
 export DNNL_GRAPH_BUILD_COMPILER_BACKEND=1
+
+echo "Applying oneDNN patch"
+cd third_party/ideep/mkl-dnn
+git apply ../../../scripts/enabling.patch
+cd ../../../
+
 CXXFLAGS_BK=${CXXFLAGS}
 export CXXFLAGS="${CXXFLAGS} -D__STDC_FORMAT_MACROS"
 python setup.py clean

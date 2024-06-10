@@ -1,0 +1,53 @@
+diff --git a/src/graph/backend/graph_compiler/core/src/compiler/codegen/precodegen_passes.cpp b/src/graph/backend/graph_compiler/core/src/compiler/codegen/precodegen_passes.cpp
+index 15db2006a8..cfee146a0e 100644
+--- a/src/graph/backend/graph_compiler/core/src/compiler/codegen/precodegen_passes.cpp
++++ b/src/graph/backend/graph_compiler/core/src/compiler/codegen/precodegen_passes.cpp
+@@ -59,6 +59,7 @@
+ #include <compiler/ir/transform/value_numbering.hpp>
+ #include <compiler/ir/util_module_passes.hpp>
+ #include <runtime/config.hpp>
++#include <iostream>
+ 
+ namespace dnnl {
+ namespace impl {
+@@ -136,6 +137,12 @@ sequential_module_pass_t get_default_precodegen_passes(
+     ret.emplace_back(module_function_pass_t::make<ir_simplifier_t>(true));
+     ret.emplace_back(module_function_pass_t::make<loop_splitter_t>());
+ 
++    if (dnnl::impl::getenv_int_user("USE_PM", 1)) {
++        ret.emplace_back(utils::make_unique<parallel_merge_t>());
++        std::cout << "Enabling parallel merge..." << std::endl;
++    } else {
++        std::cout << "Parallel merge is disabled..." << std::endl;
++    }
+     ret.emplace_back(utils::make_unique<parallel_merge_t>());
+     ret.emplace_back(utils::make_unique<dead_func_eliminate_t>());
+     ret.emplace_back(module_function_pass_t::make<bf16_fp16_eliminator_t>(ctx));
+diff --git a/src/graph/backend/graph_compiler/core/src/compiler/config/context.hpp b/src/graph/backend/graph_compiler/core/src/compiler/config/context.hpp
+index b594ceff32..a699d7fea5 100644
+--- a/src/graph/backend/graph_compiler/core/src/compiler/config/context.hpp
++++ b/src/graph/backend/graph_compiler/core/src/compiler/config/context.hpp
+@@ -19,6 +19,8 @@
+ #include <memory>
+ #include <string>
+ #include <runtime/target_machine.hpp>
++#include <common/utils.hpp>
++#include <iostream>
+ 
+ namespace dnnl {
+ namespace impl {
+@@ -42,6 +44,14 @@ enum class fusion_opt_level : int { lv0 = 0, lv1, lv2, lv3 };
+ struct scflags_t {
+     enum class brgemm_backend_t : int { dnnl = 0, max_num };
+ 
++    scflags_t() {
++        int level = getenv_int_user("FUSION_LEVEL", 3);
++        int opt_level = getenv_int_user("OPT_LEVEL", 3);
++        fusion_level_ = static_cast<fusion_opt_level>(level);
++        opt_level_ = static_cast<sc_opt_level>(opt_level);
++        std::cout << "FUSION LEVEL IS: " << level << " | OPT LEVEL IS: " << opt_level << std::endl;
++    }
++
+     jit_kind jit_kind_ = jit_kind::cfake;
+     sc_opt_level opt_level_ = sc_opt_level::lv3;
+     int backend_opt_level_ = 3;
