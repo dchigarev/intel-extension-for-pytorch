@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eo pipefail
 
-VER_IPEX=main
+VER_IPEX=patched_onednn
 
 # Mode: Select which components to install. PyTorch and Intel® Extension for PyTorch* are always installed.
 # High bit: 8 7 6 5 4 3 2 1 :Low bit
@@ -33,7 +33,7 @@ cd ${BASEFOLDER}
 
 # Checkout individual components
 if [ ! -d intel-extension-for-pytorch ]; then
-    git clone https://github.com/intel/intel-extension-for-pytorch.git intel-extension-for-pytorch
+    git clone https://github.com/dchigarev/intel-extension-for-pytorch.git intel-extension-for-pytorch
 fi
 cd intel-extension-for-pytorch
 if [ ! -z "${VER_IPEX}" ]; then
